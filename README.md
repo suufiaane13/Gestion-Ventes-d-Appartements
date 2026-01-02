@@ -81,22 +81,18 @@ Application web moderne et professionnelle pour la gestion des ventes d'appartem
    
    Pour éviter les problèmes CORS avec les modules ES6, utilisez un serveur local :
    
-   **Python 3 :**
-   ```bash
-   python server.py
-   ```
-   Puis ouvrez : `http://localhost:8000`
-   
    **Node.js :**
    ```bash
    node server.js
    ```
    Puis ouvrez : `http://localhost:8000`
    
-   **Windows (double-clic) :**
-   ```bash
-   server.bat
-   ```
+   **Alternative : Serveur HTTP simple**
+   
+   Vous pouvez utiliser n'importe quel serveur HTTP local :
+   - **Python 3** : `python -m http.server 8000`
+   - **PHP** : `php -S localhost:8000`
+   - **VS Code** : Extension "Live Server"
    
    **Option 2 : Directement**
    - Ouvrir `index.html` dans un navigateur moderne
@@ -148,10 +144,7 @@ sadiki-med/
 │   ├── charts.js           # Gestion des graphiques Chart.js
 │   └── statistiques.js     # Logique de la page statistiques
 │
-├── server.py               # Serveur HTTP Python (pour développement)
 ├── server.js               # Serveur HTTP Node.js (pour développement)
-├── server.bat              # Script Windows pour lancer le serveur
-├── LIRE_MOI_SERVEUR.md     # Instructions pour le serveur local
 │
 ├── todo.md                 # Cahier des charges
 └── README.md               # Documentation (ce fichier)

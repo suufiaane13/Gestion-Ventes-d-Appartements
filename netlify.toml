@@ -1,0 +1,38 @@
+[build]
+  # Netlify n'a pas besoin de build pour ce projet statique
+  # La commande publish est le répertoire racine
+  publish = "."
+
+# Configuration des redirections pour le routing SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers de sécurité
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Headers pour les fichiers JavaScript (modules ES6)
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Content-Type = "application/javascript; charset=utf-8"
+
+# Headers pour les images
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Headers pour les fichiers HTML
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
