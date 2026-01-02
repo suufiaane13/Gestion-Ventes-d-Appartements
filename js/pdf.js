@@ -92,6 +92,7 @@ export class PDFManager {
                 <th>Téléphone</th>
                 <th>Date d'achat</th>
                 <th>Appartement</th>
+                <th>Prix</th>
             </tr>
         </thead>
         <tbody>
@@ -102,6 +103,7 @@ export class PDFManager {
                     <td>${this.escapeHtml(sale.telephone || '')}</td>
                     <td>${this.formatDate(sale.dateAchat)}</td>
                     <td>${this.escapeHtml(sale.appartement || '')}</td>
+                    <td>${this.formatPrix(sale.prix)}</td>
                 </tr>
             `).join('')}
         </tbody>
@@ -125,6 +127,16 @@ export class PDFManager {
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return dateString;
         return date.toLocaleDateString('fr-FR');
+    }
+
+    static formatPrix(prix) {
+        if (!prix) return '';
+        if (prix === '121800') {
+            return '121 800 DH';
+        } else if (prix === '155000-16500') {
+            return '155 000 - 16 500 DH';
+        }
+        return prix;
     }
 }
 

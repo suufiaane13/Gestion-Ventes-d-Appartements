@@ -626,24 +626,46 @@
                     </div>
                 </div>
 
-                <div>
-                    <label for="appartement" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Immeuble - Étages - Numéro d'appartement <span class="text-red-600">*</span>
-                    </label>
-                    <input 
-                        type="text" 
-                        id="appartement" 
-                        name="appartement"
-                        required
-                        pattern="\d{3}-\d{2}-\d{2}"
-                        aria-required="true"
-                        aria-describedby="appartementError appartementHelp"
-                        aria-invalid="false"
-                        class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
-                        placeholder="148-03-41"
-                    >
-                    <span class="text-red-600 text-sm hidden" id="appartementError" role="alert" aria-live="polite"></span>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" id="appartementHelp">Format: XXX-XX-XX (ex: 148-03-41)</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="appartement" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Immeuble - Étages - Numéro d'appartement <span class="text-red-600">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="appartement" 
+                            name="appartement"
+                            required
+                            pattern="\d{3}-\d{2}-\d{2}"
+                            aria-required="true"
+                            aria-describedby="appartementError appartementHelp"
+                            aria-invalid="false"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                            placeholder="148-03-41"
+                        >
+                        <span class="text-red-600 text-sm hidden" id="appartementError" role="alert" aria-live="polite"></span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" id="appartementHelp">Format: XXX-XX-XX (ex: 148-03-41)</p>
+                    </div>
+
+                    <div>
+                        <label for="prix" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Prix <span class="text-red-600">*</span>
+                        </label>
+                        <select 
+                            id="prix" 
+                            name="prix"
+                            required
+                            aria-required="true"
+                            aria-describedby="prixError"
+                            aria-invalid="false"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                        >
+                            <option value="">Sélectionner un prix</option>
+                            <option value="121800">121 800 DH</option>
+                            <option value="155000-16500">155 000 - 16 500 DH</option>
+                        </select>
+                        <span class="text-red-600 text-sm hidden" id="prixError" role="alert" aria-live="polite"></span>
+                    </div>
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-4 pt-4">
@@ -701,7 +723,7 @@
                 </div>
 
                 <!-- Filters Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     <!-- Building Filter -->
                     <div>
                         <label for="filterBuilding" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -740,6 +762,22 @@
                             aria-label="Date de fin pour le filtre"
                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
                         >
+                    </div>
+
+                    <!-- Price Filter -->
+                    <div>
+                        <label for="filterPrix" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Prix
+                        </label>
+                        <select 
+                            id="filterPrix"
+                            aria-label="Filtrer par prix"
+                            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                        >
+                            <option value="">Tous les prix</option>
+                            <option value="121800">121 800 DH</option>
+                            <option value="155000-16500">155 000 - 16 500 DH</option>
+                        </select>
                     </div>
 
                     <!-- Clear Filters Button -->
@@ -810,10 +848,10 @@
         </section>
 
         <!-- Table Section -->
-        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 overflow-x-auto">
-            <h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-6">
+        <section class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-3 sm:p-6 overflow-x-auto">
+            <h2 class="text-xl sm:text-2xl font-semibold text-gray-800 dark:text-white mb-4 sm:mb-6">
                 Liste des Ventes
-                <span id="recordCount" class="text-lg font-normal text-gray-600 dark:text-gray-400 ml-2"></span>
+                <span id="recordCount" class="text-sm sm:text-lg font-normal text-gray-600 dark:text-gray-400 ml-2"></span>
             </h2>
             
             <!-- Table Skeleton -->
@@ -829,32 +867,35 @@
             
             <!-- Actual Table (hidden initially) -->
             <div id="tableContent" class="hidden overflow-x-auto">
-                <table class="w-full border-collapse">
+                <table class="w-full border-collapse text-sm">
                     <thead>
                         <tr class="bg-gray-100 dark:bg-gray-700">
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" data-sort="nom">
-                                Nom
+                            <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" data-sort="nom">
+                                <span class="block sm:hidden">Nom/Prénom</span>
                             </th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" data-sort="prenom">
+                            <th class="hidden sm:table-cell px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" data-sort="prenom">
                                 Prénom
                             </th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" data-sort="telephone">
+                            <th class="hidden md:table-cell px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" data-sort="telephone">
                                 Téléphone
                             </th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" data-sort="dateAchat">
-                                Date d'achat
+                            <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" data-sort="dateAchat">
+                                Date
                             </th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" data-sort="appartement">
-                                Appartement
+                            <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" data-sort="appartement">
+                                <span class="hidden sm:block">Appartement</span>
                             </th>
-                            <th class="px-4 py-3 text-center text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 no-print">
+                            <th class="hidden lg:table-cell px-4 py-3 text-left text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600" data-sort="prix">
+                                Prix
+                            </th>
+                            <th class="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs font-medium text-gray-700 dark:text-gray-300 uppercase tracking-wider border-b border-gray-200 dark:border-gray-600 no-print">
                                 Actions
                             </th>
                         </tr>
                     </thead>
                     <tbody id="salesTableBody">
                         <tr>
-                            <td colspan="6" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
                                 Aucune vente enregistrée
                             </td>
                         </tr>

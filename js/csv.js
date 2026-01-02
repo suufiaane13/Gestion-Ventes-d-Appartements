@@ -9,7 +9,7 @@ export class CSVManager {
             throw new Error('Aucune donnée à exporter');
         }
 
-        const headers = ['Nom', 'Prénom', 'Téléphone', 'Date d\'achat', 'Appartement'];
+        const headers = ['Nom', 'Prénom', 'Téléphone', 'Date d\'achat', 'Appartement', 'Prix'];
         const currentDate = new Date().toLocaleDateString('fr-FR');
         
         // Créer un fichier HTML table optimisé pour Excel avec colonnes auto-ajustées
@@ -103,6 +103,7 @@ export class CSVManager {
                     <td>${this.escapeHtml(sale.telephone || '')}</td>
                     <td>${this.formatDate(sale.dateAchat)}</td>
                     <td>${this.escapeHtml(sale.appartement || '')}</td>
+                    <td>${this.formatPrix(sale.prix)}</td>
                 </tr>
             `).join('')}
         </tbody>
@@ -176,10 +177,10 @@ export class CSVManager {
             const headerCells = headerRow.querySelectorAll('th, td');
             const headers = Array.from(headerCells).map(cell => cell.textContent.trim());
             
-            const expectedHeaders = ['Nom', 'Prénom', 'Téléphone', 'Date d\'achat', 'Appartement'];
+            const expectedHeaders = ['Nom', 'Prénom', 'Téléphone', 'Date d\'achat', 'Appartement', 'Prix'];
             
             if (!this.validateHeaders(headers, expectedHeaders)) {
-                reject(new Error('Format de fichier invalide. Les colonnes attendues sont: Nom, Prénom, Téléphone, Date d\'achat, Appartement'));
+                reject(new Error('Format de fichier invalide. Les colonnes attendues sont: Nom, Prénom, Téléphone, Date d\'achat, Appartement, Prix'));
                 return;
             }
 
@@ -202,7 +203,8 @@ export class CSVManager {
                         prenom: cells[1]?.textContent.trim() || '',
                         telephone: cells[2]?.textContent.trim() || '',
                         dateAchat: this.parseDate(cells[3]?.textContent.trim() || ''),
-                        appartement: cells[4]?.textContent.trim() || ''
+                        appartement: cells[4]?.textContent.trim() || '',
+                        prix: this.parsePrix(cells[5]?.textContent.trim() || '')
                     };
 
                     const validationError = this.validateSale(sale, i + 1);
@@ -238,10 +240,10 @@ export class CSVManager {
             }
 
             const headers = this.parseCSVLine(lines[0]);
-            const expectedHeaders = ['Nom', 'Prénom', 'Téléphone', 'Date d\'achat', 'Appartement'];
+            const expectedHeaders = ['Nom', 'Prénom', 'Téléphone', 'Date d\'achat', 'Appartement', 'Prix'];
             
             if (!this.validateHeaders(headers, expectedHeaders)) {
-                reject(new Error('Format de fichier CSV invalide. Les colonnes attendues sont: Nom, Prénom, Téléphone, Date d\'achat, Appartement'));
+                reject(new Error('Format de fichier CSV invalide. Les colonnes attendues sont: Nom, Prénom, Téléphone, Date d\'achat, Appartement, Prix'));
                 return;
             }
 
@@ -262,7 +264,8 @@ export class CSVManager {
                         prenom: values[1]?.trim() || '',
                         telephone: values[2]?.trim() || '',
                         dateAchat: this.parseDate(values[3]?.trim() || ''),
-                        appartement: values[4]?.trim() || ''
+                        appartement: values[4]?.trim() || '',
+                        prix: this.parsePrix(values[5]?.trim() || '')
                     };
 
                     const validationError = this.validateSale(sale, i + 1);
@@ -399,7 +402,31 @@ export class CSVManager {
         if (!sale.appartement || !/^\d{3}-\d{2}-\d{2}$/.test(sale.appartement)) {
             return `Ligne ${lineNumber}: Le format de l'appartement est invalide (attendu: XXX-XX-XX)`;
         }
+        if (!sale.prix || (sale.prix !== '121800' && sale.prix !== '155000-16500')) {
+            return `Ligne ${lineNumber}: Le prix est invalide (attendu: 121800 ou 155000-16500)`;
+        }
         return null;
+    }
+
+    static formatPrix(prix) {
+        if (!prix) return '';
+        if (prix === '121800') {
+            return '121 800 DH';
+        } else if (prix === '155000-16500') {
+            return '155 000 - 16 500 DH';
+        }
+        return prix;
+    }
+
+    static parsePrix(prixString) {
+        if (!prixString) return '';
+        // Convertir les formats d'affichage vers les valeurs internes
+        if (prixString.includes('121 800') || prixString === '121800' || prixString.includes('121800')) {
+            return '121800';
+        } else if (prixString.includes('155 000') || prixString.includes('155000-16500') || prixString === '155000-16500' || prixString.includes('138 500')) {
+            return '155000-16500';
+        }
+        return prixString.trim();
     }
 }
 

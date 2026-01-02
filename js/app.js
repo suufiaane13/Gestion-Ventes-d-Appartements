@@ -16,7 +16,8 @@ class ApartmentSalesApp {
             search: '',
             building: '',
             dateFrom: '',
-            dateTo: ''
+            dateTo: '',
+            prix: ''
         };
         
         this.init();
@@ -25,11 +26,8 @@ class ApartmentSalesApp {
     init() {
         this.initDarkMode();
         this.setMaxDate();
-        this.loadSales();
         this.setupEventListeners();
-        this.updateStatistics();
-        this.updateBuildingsFilter();
-        this.renderTable();
+        this.loadSales();
     }
 
     setMaxDate() {
@@ -70,6 +68,7 @@ class ApartmentSalesApp {
         const filterBuilding = document.getElementById('filterBuilding');
         const filterDateFrom = document.getElementById('filterDateFrom');
         const filterDateTo = document.getElementById('filterDateTo');
+        const filterPrix = document.getElementById('filterPrix');
         const clearFiltersBtn = document.getElementById('clearFiltersBtn');
 
         form.addEventListener('submit', (e) => this.handleSubmit(e));
@@ -168,6 +167,9 @@ class ApartmentSalesApp {
         if (filterDateTo) {
             filterDateTo.addEventListener('change', (e) => this.handleFilterChange('dateTo', e.target.value));
         }
+        if (filterPrix) {
+            filterPrix.addEventListener('change', (e) => this.handleFilterChange('prix', e.target.value));
+        }
         if (clearFiltersBtn) {
             clearFiltersBtn.addEventListener('click', () => this.clearAllFilters());
         }
@@ -198,9 +200,10 @@ class ApartmentSalesApp {
             header.addEventListener('click', () => this.handleSort(header.dataset.sort));
         });
 
-        const inputs = form.querySelectorAll('input[type="text"], input[type="tel"], input[type="date"]');
+        const inputs = form.querySelectorAll('input[type="text"], input[type="tel"], input[type="date"], select');
         inputs.forEach(input => {
             input.addEventListener('input', () => this.clearFieldError(input.id));
+            input.addEventListener('change', () => this.clearFieldError(input.id));
         });
     }
 
@@ -213,6 +216,9 @@ class ApartmentSalesApp {
             this.allSales = StorageManager.getAll();
             this.applyAllFilters();
             this.updateRecordCount();
+            this.updateStatistics();
+            this.updateBuildingsFilter();
+            this.renderTable();
             this.hideSkeletons();
         }, 500);
     }
@@ -348,7 +354,8 @@ class ApartmentSalesApp {
             prenom: formData.get('prenom').trim(),
             telephone: formData.get('telephone').trim().replace(/\s/g, ''),
             dateAchat: formData.get('dateAchat'),
-            appartement: formData.get('appartement').trim()
+            appartement: formData.get('appartement').trim(),
+            prix: formData.get('prix').trim()
         };
 
         if (!this.validateForm(sale)) {
@@ -440,6 +447,11 @@ class ApartmentSalesApp {
             isValid = false;
         }
 
+        if (!sale.prix || sale.prix.trim() === '') {
+            this.showFieldError('prix', 'Le prix est requis');
+            isValid = false;
+        }
+
         return isValid;
     }
 
@@ -485,12 +497,14 @@ class ApartmentSalesApp {
             search: '',
             building: '',
             dateFrom: '',
-            dateTo: ''
+            dateTo: '',
+            prix: ''
         };
         document.getElementById('searchInput').value = '';
         document.getElementById('filterBuilding').value = '';
         document.getElementById('filterDateFrom').value = '';
         document.getElementById('filterDateTo').value = '';
+        document.getElementById('filterPrix').value = '';
         this.currentPage = 1;
         this.applyAllFilters();
     }
@@ -506,12 +520,14 @@ class ApartmentSalesApp {
                 const telephone = sale.telephone?.toLowerCase() || '';
                 const appartement = sale.appartement?.toLowerCase() || '';
                 const dateAchat = this.formatDateForDisplay(sale.dateAchat)?.toLowerCase() || '';
+                const prix = this.formatPrixForDisplay(sale.prix)?.toLowerCase() || '';
                 
                 return nom.includes(searchTerm) ||
                        prenom.includes(searchTerm) ||
                        telephone.includes(searchTerm) ||
                        appartement.includes(searchTerm) ||
-                       dateAchat.includes(searchTerm);
+                       dateAchat.includes(searchTerm) ||
+                       prix.includes(searchTerm);
             });
         }
 
@@ -537,6 +553,13 @@ class ApartmentSalesApp {
                 const toDate = new Date(this.activeFilters.dateTo);
                 toDate.setHours(23, 59, 59, 999);
                 return saleDate <= toDate;
+            });
+        }
+
+        if (this.activeFilters.prix) {
+            filtered = filtered.filter(sale => {
+                if (!sale.prix) return false;
+                return sale.prix === this.activeFilters.prix;
             });
         }
 
@@ -585,6 +608,9 @@ class ApartmentSalesApp {
             if (this.sortColumn === 'dateAchat') {
                 aValue = new Date(aValue).getTime();
                 bValue = new Date(bValue).getTime();
+            } else if (this.sortColumn === 'prix') {
+                aValue = this.getPrixValue(aValue);
+                bValue = this.getPrixValue(bValue);
             } else {
                 aValue = String(aValue).toLowerCase();
                 bValue = String(bValue).toLowerCase();
@@ -609,6 +635,7 @@ class ApartmentSalesApp {
         document.getElementById('telephone').value = sale.telephone;
         document.getElementById('dateAchat').value = sale.dateAchat;
         document.getElementById('appartement').value = sale.appartement;
+        document.getElementById('prix').value = sale.prix || '';
         
         document.getElementById('formTitle').textContent = 'Modifier la Vente';
         document.getElementById('submitBtn').textContent = 'Mettre à jour';
@@ -862,28 +889,36 @@ class ApartmentSalesApp {
 
         tbody.innerHTML = pageData.map(sale => `
             <tr class="odd:bg-gray-50 dark:odd:bg-gray-700 even:bg-white dark:even:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                <td class="px-4 py-3 border-b border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200">${this.escapeHtml(sale.nom)}</td>
-                <td class="px-4 py-3 border-b border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200">${this.escapeHtml(sale.prenom)}</td>
-                <td class="px-4 py-3 border-b border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200">${this.escapeHtml(sale.telephone)}</td>
-                <td class="px-4 py-3 border-b border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200">${this.formatDateForDisplay(sale.dateAchat)}</td>
-                <td class="px-4 py-3 border-b border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200">${this.escapeHtml(sale.appartement)}</td>
-                <td class="px-4 py-3 border-b border-gray-200 dark:border-gray-600 text-center no-print">
-                    <div class="flex justify-center gap-2">
+                <td class="px-2 sm:px-4 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 text-xs sm:text-sm">
+                    <div class="font-medium">${this.escapeHtml(sale.nom)}</div>
+                    <div class="sm:hidden text-gray-500 dark:text-gray-400 text-xs mt-0.5">${this.escapeHtml(sale.prenom)}</div>
+                </td>
+                <td class="hidden sm:table-cell px-4 py-3 border-b border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 text-sm">${this.escapeHtml(sale.prenom)}</td>
+                <td class="hidden md:table-cell px-4 py-3 border-b border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 text-sm">${this.escapeHtml(sale.telephone)}</td>
+                <td class="px-2 sm:px-4 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 text-xs sm:text-sm whitespace-nowrap">${this.formatDateForDisplay(sale.dateAchat)}</td>
+                <td class="px-2 sm:px-4 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 text-xs sm:text-sm font-mono">${this.escapeHtml(sale.appartement)}</td>
+                <td class="hidden lg:table-cell px-4 py-3 border-b border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 text-sm font-semibold">${this.formatPrixForDisplay(sale.prix)}</td>
+                <td class="px-2 sm:px-4 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-600 text-center no-print">
+                    <div class="flex justify-center gap-1 sm:gap-2">
                         <button 
                             onclick="app.handleEdit('${sale.id}')"
                             aria-label="Modifier la vente de ${this.escapeHtml(sale.nom)} ${this.escapeHtml(sale.prenom)}"
-                            class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                            class="bg-blue-600 text-white p-1.5 sm:p-2 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                             title="Modifier"
                         >
-                            Modifier
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
                         </button>
                         <button 
                             onclick="app.handleDelete('${sale.id}')"
                             aria-label="Supprimer la vente de ${this.escapeHtml(sale.nom)} ${this.escapeHtml(sale.prenom)}"
-                            class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 transition-colors text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                            class="bg-red-600 text-white p-1.5 sm:p-2 rounded-lg hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                             title="Supprimer"
                         >
-                            Supprimer
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
                         </button>
                     </div>
                 </td>
@@ -956,6 +991,26 @@ class ApartmentSalesApp {
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return dateString;
         return date.toLocaleDateString('fr-FR');
+    }
+
+    formatPrixForDisplay(prix) {
+        if (!prix) return '';
+        if (prix === '121800') {
+            return '121 800 DH';
+        } else if (prix === '155000-16500') {
+            return '155 000 - 16 500 DH';
+        }
+        return prix;
+    }
+
+    getPrixValue(prix) {
+        if (!prix) return 0;
+        if (prix === '121800') {
+            return 121800;
+        } else if (prix === '155000-16500') {
+            return 138500; // Prix final après réduction
+        }
+        return 0;
     }
 
     escapeHtml(text) {

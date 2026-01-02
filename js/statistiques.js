@@ -11,10 +11,8 @@ class StatistiquesApp {
 
     init() {
         this.initDarkMode();
-        this.loadSales();
         this.setupEventListeners();
-        this.updateStatistics();
-        this.initCharts();
+        this.loadSales();
     }
 
     initDarkMode() {
@@ -110,6 +108,8 @@ class StatistiquesApp {
         setTimeout(() => {
             this.allSales = StorageManager.getAll();
             this.updateRecordCount();
+            this.updateStatistics();
+            this.initCharts();
             this.hideSkeletons();
         }, 500);
     }
