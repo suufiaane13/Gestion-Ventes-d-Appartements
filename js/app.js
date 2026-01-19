@@ -205,6 +205,15 @@ class ApartmentSalesApp {
             input.addEventListener('input', () => this.clearFieldError(input.id));
             input.addEventListener('change', () => this.clearFieldError(input.id));
         });
+
+        // Mettre à jour le format d'appartement selon le prix sélectionné
+        const prixSelect = document.getElementById('prix');
+        if (prixSelect) {
+            prixSelect.addEventListener('change', () => {
+                this.updateAppartementFormat();
+                this.clearFieldError('appartement');
+            });
+        }
     }
 
     loadSales() {
@@ -442,9 +451,30 @@ class ApartmentSalesApp {
             }
         }
 
-        if (!sale.appartement || !/^\d{3}-\d{2}-\d{2}$/.test(sale.appartement)) {
-            this.showFieldError('appartement', 'Le format doit être XXX-XX-XX (ex: 148-03-41)');
+        // Validation du format d'appartement selon le prix
+        if (!sale.appartement) {
+            this.showFieldError('appartement', 'L\'appartement est requis');
             isValid = false;
+        } else {
+            // Format pour prix 121 800: 999-A-99-99 (Immeuble-Porte-Étage-Numéro)
+            // Format pour prix 155 000 - 165 000 et 175 000: 999-99-99 (ancien format)
+            if (sale.prix === '121800') {
+                if (!/^\d{3}-[A-D]-\d{2}-\d{2}$/.test(sale.appartement)) {
+                    this.showFieldError('appartement', 'Le format doit être XXX-A-XX-XX où A est la porte (A, B, C ou D). Ex: 148-A-03-41');
+                    isValid = false;
+                }
+            } else if (sale.prix === '155000-16500' || sale.prix === '175000') {
+                if (!/^\d{3}-\d{2}-\d{2}$/.test(sale.appartement)) {
+                    this.showFieldError('appartement', 'Le format doit être XXX-XX-XX (ex: 148-03-41)');
+                    isValid = false;
+                }
+            } else {
+                // Si le prix n'est pas encore sélectionné, accepter les deux formats
+                if (!/^\d{3}-[A-D]-\d{2}-\d{2}$/.test(sale.appartement) && !/^\d{3}-\d{2}-\d{2}$/.test(sale.appartement)) {
+                    this.showFieldError('appartement', 'Format invalide. Pour prix 121 800: XXX-A-XX-XX, sinon: XXX-XX-XX');
+                    isValid = false;
+                }
+            }
         }
 
         if (!sale.prix || sale.prix.trim() === '') {
@@ -637,6 +667,9 @@ class ApartmentSalesApp {
         document.getElementById('appartement').value = sale.appartement;
         document.getElementById('prix').value = sale.prix || '';
         
+        // Mettre à jour le format d'appartement selon le prix
+        this.updateAppartementFormat();
+        
         document.getElementById('formTitle').textContent = 'Modifier la Vente';
         document.getElementById('submitBtn').textContent = 'Mettre à jour';
         document.getElementById('cancelBtn').classList.remove('hidden');
@@ -708,6 +741,9 @@ class ApartmentSalesApp {
         document.getElementById('submitBtn').textContent = 'Enregistrer';
         document.getElementById('cancelBtn').classList.add('hidden');
         
+        // Reset format d'appartement
+        this.updateAppartementFormat();
+        
         // Clear all field errors
         document.querySelectorAll('[id$="Error"]').forEach(error => {
             error.classList.add('hidden');
@@ -718,6 +754,25 @@ class ApartmentSalesApp {
         document.querySelectorAll('input, select').forEach(field => {
             field.setAttribute('aria-invalid', 'false');
         });
+    }
+
+    updateAppartementFormat() {
+        const prixSelect = document.getElementById('prix');
+        const appartementInput = document.getElementById('appartement');
+        
+        if (!prixSelect || !appartementInput) return;
+        
+        const prix = prixSelect.value;
+        if (prix === '121800') {
+            appartementInput.placeholder = '148-A-03-41';
+            appartementInput.pattern = '\\d{3}-[A-D]-\\d{2}-\\d{2}';
+        } else if (prix === '155000-16500' || prix === '175000') {
+            appartementInput.placeholder = '148-03-41';
+            appartementInput.pattern = '\\d{3}-\\d{2}-\\d{2}';
+        } else {
+            appartementInput.placeholder = '148-A-03-41 ou 148-03-41';
+            appartementInput.removeAttribute('pattern');
+        }
     }
 
     handleExport() {
@@ -998,7 +1053,9 @@ class ApartmentSalesApp {
         if (prix === '121800') {
             return '121 800 DH';
         } else if (prix === '155000-16500') {
-            return '155 000 - 16 500 DH';
+            return '155 000 - 165 000 DH';
+        } else if (prix === '175000') {
+            return '175 000 DH';
         }
         return prix;
     }
@@ -1009,6 +1066,8 @@ class ApartmentSalesApp {
             return 121800;
         } else if (prix === '155000-16500') {
             return 138500; // Prix final après réduction
+        } else if (prix === '175000') {
+            return 175000;
         }
         return 0;
     }

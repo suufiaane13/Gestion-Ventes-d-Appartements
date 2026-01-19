@@ -134,7 +134,9 @@ export class PDFManager {
         if (prix === '121800') {
             return '121 800 DH';
         } else if (prix === '155000-16500') {
-            return '155 000 - 16 500 DH';
+            return '155 000 - 165 000 DH';
+        } else if (prix === '175000') {
+            return '175 000 DH';
         }
         return prix;
     }

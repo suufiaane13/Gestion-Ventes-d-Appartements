@@ -332,6 +332,17 @@
                         </svg>
                         <span>Statistiques</span>
                     </a>
+                    <a 
+                        href="dinosaur.html"
+                        class="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 font-medium transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                        title="Jouer au jeu T-Rex"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span>Jeu 🦖</span>
+                    </a>
                     <div class="flex items-center space-x-2 bg-gray-50 dark:bg-gray-800 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700">
                         <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -391,6 +402,16 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                         </svg>
                         <span class="font-medium">Statistiques</span>
+                    </a>
+                    <a 
+                        href="dinosaur.html"
+                        class="flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <span class="font-medium">Jeu 🦖</span>
                     </a>
                     <button 
                         id="darkModeToggleMobile"
@@ -629,22 +650,20 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label for="appartement" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Immeuble - Étages - Numéro d'appartement <span class="text-red-600">*</span>
+                            Immeuble <span class="text-red-600">*</span>
                         </label>
                         <input 
                             type="text" 
                             id="appartement" 
                             name="appartement"
                             required
-                            pattern="\d{3}-\d{2}-\d{2}"
                             aria-required="true"
-                            aria-describedby="appartementError appartementHelp"
+                            aria-describedby="appartementError"
                             aria-invalid="false"
                             class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-red-600 focus:border-transparent"
-                            placeholder="148-03-41"
+                            placeholder="148-A-03-41"
                         >
                         <span class="text-red-600 text-sm hidden" id="appartementError" role="alert" aria-live="polite"></span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" id="appartementHelp">Format: XXX-XX-XX (ex: 148-03-41)</p>
                     </div>
 
                     <div>
@@ -662,7 +681,8 @@
                         >
                             <option value="">Sélectionner un prix</option>
                             <option value="121800">121 800 DH</option>
-                            <option value="155000-16500">155 000 - 16 500 DH</option>
+                            <option value="155000-16500">155 000 - 165 000 DH</option>
+                            <option value="175000">175 000 DH</option>
                         </select>
                         <span class="text-red-600 text-sm hidden" id="prixError" role="alert" aria-live="polite"></span>
                     </div>
@@ -776,7 +796,8 @@
                         >
                             <option value="">Tous les prix</option>
                             <option value="121800">121 800 DH</option>
-                            <option value="155000-16500">155 000 - 16 500 DH</option>
+                            <option value="155000-16500">155 000 - 165 000 DH</option>
+                            <option value="175000">175 000 DH</option>
                         </select>
                     </div>
 

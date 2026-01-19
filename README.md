@@ -168,7 +168,7 @@ sadiki-med/
 | Prénom | Texte | ✅ | - | Prénom du client |
 | Téléphone | Tel | ✅ | 10 chiffres | Numéro de téléphone |
 | Date d'achat | Date | ✅ | YYYY-MM-DD | Date de l'achat (pas de date future) |
-| Appartement | Texte | ✅ | XXX-XX-XX | Format : Immeuble-Étage-Numéro (ex: 148-03-41) |
+| Appartement | Texte | ✅ | Variable | Format selon prix :<br>- Prix 121 800 : XXX-A-XX-XX (Immeuble-Porte-Étage-Numéro, ex: 148-A-03-41)<br>- Autre prix : XXX-XX-XX (Immeuble-Étage-Numéro, ex: 148-03-41)<br>Porte : A, B, C ou D (4 portes par immeuble pour prix 121 800) |
 
 ## 📊 Format des Fichiers
 

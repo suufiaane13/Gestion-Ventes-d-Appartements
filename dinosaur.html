@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Jeu T-Rex Runner - Lotissement AL BASSATINE">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#DC2626">
+    
+    <title>Jeu T-Rex - Lotissement AL BASSATINE</title>
+    
+    <script>
+        (function() {
+            const darkMode = JSON.parse(localStorage.getItem('darkMode') || 'false');
+            if (darkMode) {
+                document.documentElement.classList.add('dark');
+            }
+        })();
+    </script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    
+    <style>
+        @media print {
+            .no-print {
+                display: none;
+            }
+        }
+        
+        /* Navbar shadow on scroll */
+        nav {
+            transition: box-shadow 0.3s ease;
+        }
+        
+        /* Logo animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        nav img {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        /* Prevent scrolling when game is active */
+        body.game-active {
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .trex-game {
+            max-width: 100%;
+            width: 100%;
+            margin: 0;
+            display: block;
+            min-height: 0;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            padding: 0;
+            line-height: 0;
+        }
+        
+        .trex-game .runner-container {
+            transition: all 0.3s;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            background-color: #ffffff;
+            width: 100% !important;
+            max-width: 100% !important;
+            touch-action: none;
+            margin: 0;
+            padding: 0;
+            display: block;
+        }
+        
+        .trex-game .runner-container canvas {
+            width: 100% !important;
+            max-width: 100% !important;
+            touch-action: none;
+            display: block;
+            margin: 0;
+            padding: 0;
+            vertical-align: top;
+        }
+        
+        /* Game card container - remove ALL spacing on mobile/tablet */
+        @media (max-width: 767px) {
+            /* Target the game card container directly */
+            .bg-white.rounded-lg.p-3,
+            .dark .dark\\:bg-gray-800.rounded-lg.p-3 {
+                padding-bottom: 0 !important;
+                margin-bottom: 0 !important;
+                padding-top: 0.75rem !important;
+                padding-left: 0.75rem !important;
+                padding-right: 0.75rem !important;
+            }
+            
+            /* Remove ALL spacing from trex-game on mobile */
+            .trex-game {
+                padding: 0 !important;
+                margin: 0 !important;
+                min-height: 0 !important;
+                height: auto !important;
+            }
+            
+            /* Remove spacing from runner-container on mobile */
+            .trex-game .runner-container {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            /* Remove spacing from canvas on mobile */
+            .trex-game .runner-container canvas {
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+            }
+        }
+        
+        /* Mobile and tablet optimizations */
+        @media (max-width: 1024px) {
+            .trex-game {
+                padding: 0;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .trex-game {
+                padding: 0 !important;
+                margin: 0 !important;
+                min-height: 0 !important;
+                height: auto !important;
+            }
+            
+            .trex-game .runner-container {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .trex-game .runner-container canvas {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+        }
+        
+        /* Prevent pull-to-refresh on mobile */
+        @media (max-width: 768px) {
+            body {
+                overscroll-behavior-y: contain;
+            }
+            
+            html {
+                overscroll-behavior-y: contain;
+            }
+        }
+        
+        .dark .trex-game .runner-container {
+            background-color: #1f2937;
+        }
+        
+        .game-instructions {
+            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 25px -5px rgba(220, 38, 38, 0.3);
+        }
+        
+        .dark .game-instructions {
+            background: linear-gradient(135deg, #991B1B 0%, #7F1D1D 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 25px -5px rgba(153, 27, 27, 0.4);
+        }
+        
+        .game-instructions kbd {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.2s;
+        }
+        
+        .game-instructions kbd:hover {
+            background-color: rgba(255, 255, 255, 0.35);
+            transform: translateY(-1px);
+        }
+        
+        /* Improved responsive design for game instructions */
+        @media (max-width: 640px) {
+            .game-instructions {
+                padding: 0.75rem !important;
+            }
+            
+            .game-instructions h2 {
+                font-size: 1rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+            
+            .game-instructions .grid {
+                gap: 0.5rem !important;
+            }
+            
+            .game-instructions > div > div {
+                padding: 0.75rem !important;
+            }
+            
+            .game-instructions h3 {
+                font-size: 0.875rem !important;
+            }
+            
+            .game-instructions .text-xs {
+                font-size: 0.7rem !important;
+            }
+        }
+        
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .game-instructions {
+                padding: 1.25rem !important;
+            }
+            
+            .game-instructions .grid {
+                gap: 0.75rem !important;
+            }
+        }
+        
+        @media (min-width: 1025px) {
+            .game-instructions {
+                padding: 1.5rem !important;
+            }
+        }
+        
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        canvas {
+            display: block;
+            margin: 0;
+            padding: 0;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            vertical-align: top;
+        }
+
+        .game-over-message {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #DC2626;
+            margin: 20px 0;
+        }
+
+        .dark .game-over-message {
+            color: #F87171;
+        }
+        
+        /* Simple loading animation */
+        .game-loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            opacity: 1;
+            transition: opacity 0.3s ease-out;
+        }
+        
+        .game-loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        /* Give minimum height to game card when loader is visible */
+        .game-card-loading {
+            min-height: 200px !important;
+        }
+        
+        @media (max-width: 767px) {
+            .game-card-loading {
+                min-height: 150px !important;
+            }
+        }
+        
+        .loader-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(239, 68, 68, 0.2);
+            border-top-color: #EF4444;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        .dark .loader-spinner {
+            border-color: rgba(239, 68, 68, 0.3);
+            border-top-color: #F87171;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .loader-text {
+            color: #6B7280;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .dark .loader-text {
+            color: #9CA3AF;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen">
+    <!-- Navbar -->
+    <nav class="bg-white dark:bg-gray-800 shadow-lg sticky top-0 z-50 no-print border-b-2 border-red-600">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo and Brand -->
+                <div class="flex items-center space-x-3 md:space-x-4">
+                    <div class="flex-shrink-0">
+                        <a href="index.html" aria-label="Retour à l'accueil" class="block focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 rounded-lg">
+                            <img 
+                                src="logo.png" 
+                                alt="Logo - Retour à l'accueil" 
+                                class="h-12 w-12 md:h-16 md:w-16 object-contain transition-transform duration-300 hover:scale-105 cursor-pointer"
+                                onerror="this.style.display='none'"
+                            >
+                        </a>
+                    </div>
+                    <div class="hidden sm:block">
+                        <h1 class="text-xl md:text-2xl font-bold text-gray-800 dark:text-white leading-tight">
+                            Lotissement AL BASSATINE, Ahfir
+                        </h1>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 hidden md:block mt-0.5">
+                            Jeu T-Rex Runner 🦖
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Mobile Title -->
+                <div class="sm:hidden text-center flex-1 ml-2">
+                    <h1 class="text-base font-bold text-gray-800 dark:text-white">
+                        AL BASSATINE
+                    </h1>
+                </div>
+
+                <!-- Desktop Nav Items -->
+                <div class="hidden md:flex items-center space-x-3 md:space-x-4">
+                    <a 
+                        href="index.html"
+                        class="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 font-medium transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                        title="Retour à l'accueil"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        <span>Accueil</span>
+                    </a>
+                    <a 
+                        href="statistiques.html"
+                        class="flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-400 font-medium transition-colors duration-200 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+                        title="Voir les statistiques et graphiques"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span>Statistiques</span>
+                    </a>
+                    <button 
+                        id="darkModeToggle"
+                        aria-label="Basculer entre le mode clair et sombre"
+                        aria-pressed="false"
+                        class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
+                        title="Basculer le mode sombre"
+                    >
+                        <svg id="sunIcon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <svg id="moonIcon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center space-x-2">
+                    <button 
+                        id="mobileMenuToggle"
+                        aria-label="Ouvrir le menu"
+                        aria-expanded="false"
+                        class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
+                    >
+                        <svg id="menuIcon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                        <svg id="closeIcon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobileMenu" class="hidden md:hidden border-t border-gray-200 dark:border-gray-700 py-4">
+                <div class="flex flex-col space-y-2">
+                    <a 
+                        href="index.html"
+                        class="flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        <span class="font-medium">Accueil</span>
+                    </a>
+                    <a 
+                        href="statistiques.html"
+                        class="flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        <span class="font-medium">Statistiques</span>
+                    </a>
+                    <button 
+                        id="darkModeToggleMobile"
+                        aria-label="Basculer entre le mode clair et sombre"
+                        class="flex items-center space-x-3 px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 w-full text-left"
+                    >
+                        <svg id="sunIconMobile" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <svg id="moonIconMobile" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
+                        <span id="darkModeTextMobile" class="font-medium">Mode sombre</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main-content" class="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
+        <div class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-800 dark:text-white mb-2">
+                🦖 Jeu T-Rex Runner
+            </h1>
+            <p class="text-gray-600 dark:text-gray-400 text-sm md:text-base">
+                Amusez-vous avec le dinosaure classique de Chrome
+            </p>
+        </div>
+
+        <div class="game-instructions rounded-lg shadow-lg p-4 md:p-6 mb-6 text-white">
+            <h2 class="text-lg md:text-xl font-bold mb-4 md:mb-6 text-center">Comment jouer</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+                <div class="bg-white/10 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-white/20 hover:bg-white/15 transition-all duration-200">
+                    <div class="flex items-center space-x-2 md:space-x-3 mb-2">
+                        <span class="text-xl md:text-2xl flex-shrink-0">⬆️</span>
+                        <h3 class="font-bold text-sm md:text-base">Sauter</h3>
+                    </div>
+                    <div class="space-y-1.5 text-xs md:text-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="text-white/70">💻</span>
+                            <div class="flex flex-wrap gap-1.5">
+                                <kbd class="bg-white/25 px-2 py-1 rounded text-xs font-mono">ESPACE</kbd>
+                                <span class="text-white/70">ou</span>
+                                <kbd class="bg-white/25 px-2 py-1 rounded text-xs font-mono">↑</kbd>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-white/70">📱</span>
+                            <span class="text-white/90">Touchez l'écran</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white/10 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-white/20 hover:bg-white/15 transition-all duration-200">
+                    <div class="flex items-center space-x-2 md:space-x-3 mb-2">
+                        <span class="text-xl md:text-2xl flex-shrink-0">⬇️</span>
+                        <h3 class="font-bold text-sm md:text-base">S'accroupir</h3>
+                    </div>
+                    <div class="space-y-1.5 text-xs md:text-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="text-white/70">💻</span>
+                            <kbd class="bg-white/25 px-2 py-1 rounded text-xs font-mono">↓</kbd>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-white/70">📱</span>
+                            <span class="text-white/90">Balayez vers le bas</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white/10 backdrop-blur-sm rounded-lg p-3 md:p-4 border border-white/20 hover:bg-white/15 transition-all duration-200 sm:col-span-2 lg:col-span-1">
+                    <div class="flex items-center space-x-2 md:space-x-3 mb-2">
+                        <span class="text-xl md:text-2xl flex-shrink-0">⏸️</span>
+                        <h3 class="font-bold text-sm md:text-base">Pause/Reprendre</h3>
+                    </div>
+                    <div class="space-y-1.5 text-xs md:text-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="text-white/70">💻</span>
+                            <kbd class="bg-white/25 px-2 py-1 rounded text-xs font-mono">P</kbd>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-white/70">📱</span>
+                            <span class="text-white/90">Touchez l'écran</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="gameCard" class="bg-white dark:bg-gray-800 rounded-lg p-3 md:p-6 pb-0 md:pb-6 mb-0 md:mb-6 relative overflow-hidden game-card-loading">
+            <!-- Loading animation -->
+            <div id="gameLoader" class="game-loader">
+                <div class="loader-spinner"></div>
+                <p class="loader-text">Chargement du jeu...</p>
+            </div>
+            <div class="trex-game" id="trexGameContainer"></div>
+        </div>
+    </main>
+
+    <footer class="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12 py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="text-center md:text-left">
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                        © <span id="currentYear"></span> Lotissement AL BASSATINE, Ahfir
+                    </p>
+                    <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        Tous droits réservés
+                    </p>
+                </div>
+                <div class="text-center md:text-right">
+                    <p class="text-sm font-semibold text-gray-800 dark:text-white">
+                        Mohammed SADIKI
+                    </p>
+                    <a href="tel:+212623403245" class="text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors duration-200 flex items-center justify-center md:justify-end gap-2 mt-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                        </svg>
+                        <span>+212 6 23 40 32 45</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Dark mode functionality
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const darkModeToggleMobile = document.getElementById('darkModeToggleMobile');
+        const html = document.documentElement;
+
+        function toggleDarkMode() {
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('darkMode', JSON.stringify(isDark));
+        }
+
+        darkModeToggle?.addEventListener('click', toggleDarkMode);
+        darkModeToggleMobile?.addEventListener('click', toggleDarkMode);
+
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const menuIcon = document.getElementById('menuIcon');
+        const closeIcon = document.getElementById('closeIcon');
+
+        mobileMenuToggle?.addEventListener('click', () => {
+            const wasHidden = mobileMenu.classList.contains('hidden');
+            mobileMenu.classList.toggle('hidden');
+            menuIcon.classList.toggle('hidden');
+            closeIcon.classList.toggle('hidden');
+            mobileMenuToggle.setAttribute('aria-expanded', wasHidden ? 'true' : 'false');
+        });
+
+        // Set current year
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Fix ALL spacing on game card container for mobile/tablet on page load
+        function fixGameCardPadding() {
+            const trexGameContainer = document.querySelector('.trex-game');
+            if (trexGameContainer) {
+                const gameCard = trexGameContainer.closest('.bg-white.rounded-lg, .dark\\:bg-gray-800.rounded-lg');
+                const runnerContainer = trexGameContainer.querySelector('.runner-container');
+                const canvas = trexGameContainer.querySelector('canvas');
+                
+                if (window.innerWidth <= 767) {
+                    // Mobile/Tablet: Remove ALL spacing
+                    if (gameCard) {
+                        gameCard.style.paddingBottom = '0';
+                        gameCard.style.marginBottom = '0';
+                    }
+                    trexGameContainer.style.padding = '0';
+                    trexGameContainer.style.margin = '0';
+                    trexGameContainer.style.minHeight = '0';
+                    trexGameContainer.style.height = 'auto';
+                    trexGameContainer.style.lineHeight = '0';
+                    
+                    if (runnerContainer) {
+                        runnerContainer.style.margin = '0';
+                        runnerContainer.style.padding = '0';
+                    }
+                    
+                    if (canvas) {
+                        canvas.style.margin = '0';
+                        canvas.style.padding = '0';
+                        canvas.style.display = 'block';
+                        canvas.style.verticalAlign = 'top';
+                    }
+                } else {
+                    // Desktop: Restore normal spacing
+                    if (gameCard) {
+                        gameCard.style.paddingBottom = '';
+                        gameCard.style.marginBottom = '';
+                    }
+                    trexGameContainer.style.padding = '';
+                    trexGameContainer.style.margin = '';
+                    trexGameContainer.style.minHeight = '';
+                    trexGameContainer.style.height = '';
+                    trexGameContainer.style.lineHeight = '';
+                    
+                    if (runnerContainer) {
+                        runnerContainer.style.margin = '';
+                        runnerContainer.style.padding = '';
+                    }
+                    
+                    if (canvas) {
+                        canvas.style.margin = '';
+                        canvas.style.padding = '';
+                    }
+                }
+            }
+        }
+        
+        // Apply fix immediately, on DOMContentLoaded, and on resize
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', fixGameCardPadding);
+        } else {
+            fixGameCardPadding();
+        }
+        window.addEventListener('resize', fixGameCardPadding);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(fixGameCardPadding, 100);
+        });
+
+        // Initialize T-Rex game with sprites
+        window.addEventListener('load', async () => {
+            const gameLoader = document.getElementById('gameLoader');
+            const gameCard = document.getElementById('gameCard');
+            
+            try {
+                const { Runner } = await import('./t-rex/resources/dino_game/offline.js');
+                const trexGameContainer = document.querySelector('.trex-game');
+                
+                if (trexGameContainer) {
+                    // Clear any existing content
+                    trexGameContainer.innerHTML = '';
+                    
+                    // Wait a bit to ensure container is properly sized
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    
+                    const runner = new Runner(trexGameContainer);
+                    
+                    // Hide loader once game is initialized
+                    setTimeout(() => {
+                        if (gameLoader) {
+                            gameLoader.classList.add('hidden');
+                            // Remove loading class from card and remove loader after fade out
+                            setTimeout(() => {
+                                if (gameCard) {
+                                    gameCard.classList.remove('game-card-loading');
+                                }
+                                if (gameLoader && gameLoader.parentNode) {
+                                    gameLoader.remove();
+                                }
+                            }, 300);
+                        }
+                    }, 500);
+                    
+                    // Override clearCanvas to use dark mode background
+                    const originalClearCanvas = runner.clearCanvas.bind(runner);
+                    runner.clearCanvas = function() {
+                        originalClearCanvas();
+                        // Fill with appropriate background color based on dark mode
+                        const isDarkMode = document.documentElement.classList.contains('dark');
+                        this.canvasCtx.fillStyle = isDarkMode ? '#1f2937' : '#f7f7f7';
+                        this.canvasCtx.fillRect(0, 0, this.dimensions.WIDTH, this.dimensions.HEIGHT);
+                    };
+                    
+                    // Update initial canvas background color
+                    setTimeout(() => {
+                        if (runner.canvasCtx) {
+                            const isDarkMode = document.documentElement.classList.contains('dark');
+                            runner.canvasCtx.fillStyle = isDarkMode ? '#1f2937' : '#f7f7f7';
+                            runner.canvasCtx.fillRect(0, 0, runner.dimensions.WIDTH, runner.dimensions.HEIGHT);
+                        }
+                    }, 150);
+                    
+                    // Listen for dark mode changes
+                    const darkModeObserver = new MutationObserver(() => {
+                        if (runner.canvasCtx) {
+                            const isDarkMode = document.documentElement.classList.contains('dark');
+                            runner.canvasCtx.fillStyle = isDarkMode ? '#1f2937' : '#f7f7f7';
+                            runner.canvasCtx.fillRect(0, 0, runner.dimensions.WIDTH, runner.dimensions.HEIGHT);
+                            // Redraw game elements
+                            if (runner.horizon) {
+                                runner.horizon.update(0, 0, true);
+                            }
+                            if (runner.tRex) {
+                                runner.tRex.draw(0, 0);
+                            }
+                        }
+                    });
+                    darkModeObserver.observe(document.documentElement, {
+                        attributes: true,
+                        attributeFilter: ['class']
+                    });
+                    
+                    // Listen for window resize to adjust dimensions
+                    let resizeTimeout;
+                    window.addEventListener('resize', () => {
+                        clearTimeout(resizeTimeout);
+                        resizeTimeout = setTimeout(() => {
+                            if (runner.adjustDimensions) {
+                                runner.adjustDimensions();
+                            }
+                        }, 250);
+                    });
+                    
+                    // Override the update method to sync dark mode background
+                    const originalUpdate = runner.update.bind(runner);
+                    runner.update = function() {
+                        // Ensure background color is correct before update
+                        if (this.canvasCtx && this.playing) {
+                            const isDarkMode = document.documentElement.classList.contains('dark');
+                            const currentFillStyle = this.canvasCtx.fillStyle;
+                            const expectedFillStyle = isDarkMode ? '#1f2937' : '#f7f7f7';
+                            if (currentFillStyle !== expectedFillStyle) {
+                                this.canvasCtx.fillStyle = expectedFillStyle;
+                            }
+                        }
+                        const result = originalUpdate();
+                        return result;
+                    };
+                    
+                    // Force dimensions adjustment after initialization
+                    setTimeout(() => {
+                        // Override adjustDimensions to use full container width
+                        const originalAdjustDimensions = runner.adjustDimensions.bind(runner);
+                        runner.adjustDimensions = function() {
+                            // Get the actual available width from the game container's parent (the div with padding)
+                            const gameContainerParent = trexGameContainer.closest('.bg-white, .dark\\:bg-gray-800');
+                            if (gameContainerParent) {
+                                const parentStyles = window.getComputedStyle(gameContainerParent);
+                                const parentPadding = parseFloat(parentStyles.paddingLeft || 0) + parseFloat(parentStyles.paddingRight || 0);
+                                const parentWidth = gameContainerParent.offsetWidth - parentPadding;
+                                
+                                // Use full available width (but respect DEFAULT_WIDTH as minimum for gameplay)
+                                // On mobile/tablet, use smaller minimum to fit screen better
+                                const isMobile = window.innerWidth <= 768;
+                                const minWidth = isMobile ? 300 : 600;
+                                const calculatedWidth = Math.max(minWidth, Math.min(parentWidth, isMobile ? parentWidth : 1200));
+                                this.dimensions.WIDTH = calculatedWidth;
+                                
+                                // Update outer container to use full width
+                                if (this.outerContainerEl) {
+                                    this.outerContainerEl.style.width = '100%';
+                                    this.outerContainerEl.style.maxWidth = '100%';
+                                }
+                                
+                                // Update container and canvas
+                                if (this.containerEl) {
+                                    this.containerEl.style.width = `${calculatedWidth}px`;
+                                    this.containerEl.style.maxWidth = '100%';
+                                }
+                                
+                                if (this.canvas) {
+                                    this.canvas.width = calculatedWidth;
+                                    Runner.updateCanvasScaling(this.canvas);
+                                }
+                                
+                                if (this.distanceMeter) {
+                                    this.distanceMeter.calcXPos(calculatedWidth);
+                                }
+                                
+                                // Update horizon dimensions and reset ground lines
+                                if (this.horizon && this.horizon.horizonLines) {
+                                    // Update horizon dimensions
+                                    this.horizon.dimensions.WIDTH = calculatedWidth;
+                                    
+                                    // Reset all horizon lines to cover full width
+                                    for (let i = 0; i < this.horizon.horizonLines.length; i++) {
+                                        const line = this.horizon.horizonLines[i];
+                                        if (line) {
+                                            // Store original segment width (usually 600)
+                                            const originalSegmentWidth = line.sourceDimensions.WIDTH || 600;
+                                            
+                                            // Update line dimensions to match canvas width
+                                            // But keep the original segment width for tiling
+                                            line.dimensions.WIDTH = calculatedWidth;
+                                            
+                                            // Reset positions to start from 0
+                                            line.xPos = [0, originalSegmentWidth];
+                                            
+                                            // Force redraw with new dimensions
+                                            line.draw();
+                                        }
+                                    }
+                                }
+                                
+                                // Redraw elements - ensure ground is visible immediately
+                                if (this.canvas) {
+                                    // Fill background first - adapt to dark mode
+                                    const isDarkMode = document.documentElement.classList.contains('dark');
+                                    this.canvasCtx.fillStyle = isDarkMode ? '#1f2937' : '#f7f7f7';
+                                    this.canvasCtx.fillRect(0, 0, calculatedWidth, this.dimensions.HEIGHT);
+                                    
+                                    // Draw horizon/ground lines first to ensure they're visible
+                                    if (this.horizon && this.horizon.horizonLines) {
+                                        for (let i = 0; i < this.horizon.horizonLines.length; i++) {
+                                            const line = this.horizon.horizonLines[i];
+                                            if (line) {
+                                                line.draw();
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Then draw other elements
+                                    if (this.horizon) {
+                                        // Force horizon to update and draw with new dimensions
+                                        this.horizon.update(0, 0, true);
+                                    }
+                                    if (this.tRex) {
+                                        this.tRex.update(0);
+                                    }
+                                }
+                                
+                                // Update container height
+                                if (this.containerEl && (this.playing || this.crashed || this.paused)) {
+                                    this.containerEl.style.height = `${this.dimensions.HEIGHT}px`;
+                                    if (this.distanceMeter) {
+                                        this.distanceMeter.update(0, Math.ceil(this.distanceRan));
+                                    }
+                                    this.stop();
+                                } else if (this.tRex) {
+                                    this.tRex.draw(0, 0);
+                                }
+                                
+                                // Game over panel
+                                if (this.crashed && this.gameOverPanel) {
+                                    this.gameOverPanel.updateDimensions(this.dimensions.WIDTH);
+                                    this.gameOverPanel.draw(this.altGameModeActive, this.tRex);
+                                }
+                                
+                                return;
+                            }
+                            
+                            // Fallback to original if parent not found
+                            return originalAdjustDimensions();
+                        };
+                        
+                        // Force initial dimension adjustment
+                        if (runner.adjustDimensions) {
+                            runner.adjustDimensions();
+                            
+                            // Force horizon to redraw with full width immediately
+                            setTimeout(() => {
+                                if (runner.horizon && runner.horizon.horizonLines && runner.canvas) {
+                                    const canvasWidth = runner.canvas.width || runner.dimensions.WIDTH;
+                                    
+                                    // Update all horizon lines to cover full width
+                                    for (let i = 0; i < runner.horizon.horizonLines.length; i++) {
+                                        const line = runner.horizon.horizonLines[i];
+                                        if (line && line.dimensions) {
+                                            // Store original segment width
+                                            const originalSegmentWidth = line.sourceDimensions.WIDTH || 600;
+                                            
+                                            // Update line dimensions to canvas width
+                                            line.dimensions.WIDTH = canvasWidth;
+                                            
+                                            // Reset positions to start from 0
+                                            line.xPos = [0, originalSegmentWidth];
+                                            
+                                            // Force redraw
+                                            line.draw();
+                                        }
+                                    }
+                                    
+                                    // Force full redraw with ground visible - adapt to dark mode
+                                    const isDarkMode = document.documentElement.classList.contains('dark');
+                                    runner.canvasCtx.fillStyle = isDarkMode ? '#1f2937' : '#f7f7f7';
+                                    runner.canvasCtx.fillRect(0, 0, canvasWidth, runner.dimensions.HEIGHT);
+                                    
+                                    // Redraw all ground lines to ensure they cover full width
+                                    for (let i = 0; i < runner.horizon.horizonLines.length; i++) {
+                                        const line = runner.horizon.horizonLines[i];
+                                        if (line) {
+                                            line.draw();
+                                        }
+                                    }
+                                    
+                                    // Draw other elements
+                                    if (runner.horizon) {
+                                        runner.horizon.update(0, 0, true);
+                                    }
+                                    if (runner.tRex) {
+                                        runner.tRex.draw(0, 0);
+                                    }
+                                }
+                            }, 100);
+                        }
+                        
+                        // Override horizon line draw method to ensure full width coverage
+                        if (runner.horizon && runner.horizon.horizonLines) {
+                            for (let i = 0; i < runner.horizon.horizonLines.length; i++) {
+                                const line = runner.horizon.horizonLines[i];
+                                if (line) {
+                                    // Store original draw method
+                                    const originalDraw = line.draw.bind(line);
+                                    const originalSegmentWidth = line.sourceDimensions.WIDTH || 600;
+                                    
+                                    // Override draw to cover full canvas width
+                                    line.draw = function() {
+                                        const canvasWidth = this.canvas.width || runner.dimensions.WIDTH;
+                                        const segmentWidth = originalSegmentWidth;
+                                        
+                                        // Calculate how many segments we need
+                                        const numSegments = Math.ceil(canvasWidth / segmentWidth) + 1;
+                                        
+                                        // Draw all segments to cover full width
+                                        for (let seg = 0; seg < numSegments; seg++) {
+                                            let xPos = this.xPos[0] + (seg * segmentWidth);
+                                            
+                                            // Wrap around if needed
+                                            while (xPos < -segmentWidth) xPos += segmentWidth * 2;
+                                            while (xPos >= canvasWidth) xPos -= segmentWidth * 2;
+                                            
+                                            // Draw first segment type
+                                            if (xPos < canvasWidth && xPos > -segmentWidth) {
+                                                this.canvasCtx.drawImage(
+                                                    window.Runner.imageSprite,
+                                                    this.sourceXPos[0],
+                                                    this.spritePos.y,
+                                                    this.sourceDimensions.WIDTH,
+                                                    this.sourceDimensions.HEIGHT,
+                                                    xPos,
+                                                    this.yPos,
+                                                    segmentWidth,
+                                                    this.dimensions.HEIGHT
+                                                );
+                                            }
+                                            
+                                            // Draw second segment type (offset by one segment)
+                                            let xPos2 = this.xPos[1] + (seg * segmentWidth);
+                                            while (xPos2 < -segmentWidth) xPos2 += segmentWidth * 2;
+                                            while (xPos2 >= canvasWidth) xPos2 -= segmentWidth * 2;
+                                            
+                                            if (xPos2 < canvasWidth && xPos2 > -segmentWidth) {
+                                                this.canvasCtx.drawImage(
+                                                    window.Runner.imageSprite,
+                                                    this.sourceXPos[1],
+                                                    this.spritePos.y,
+                                                    this.sourceDimensions.WIDTH,
+                                                    this.sourceDimensions.HEIGHT,
+                                                    xPos2,
+                                                    this.yPos,
+                                                    segmentWidth,
+                                                    this.dimensions.HEIGHT
+                                                );
+                                            }
+                                        }
+                                    };
+                                }
+                            }
+                        }
+                        
+                        // Override horizon.update to force ground to move during intro and ensure full width coverage
+                        // This fixes the issue where dinosaur walks before ground moves
+                        if (runner.horizon && runner.horizon.update) {
+                            const originalHorizonUpdate = runner.horizon.update.bind(runner.horizon);
+                            runner.horizon.update = function(deltaTime, speed, hasObstacles, showNightMode) {
+                                // If deltaTime is 0 (during intro), use a small value to make ground move
+                                if (deltaTime === 0 && runner.playingIntro && runner.playing) {
+                                    deltaTime = 16; // ~60fps
+                                }
+                                
+                                // Call original update
+                                const result = originalHorizonUpdate(deltaTime, speed, hasObstacles, showNightMode);
+                                
+                                // Ensure ground lines are redrawn to cover full width
+                                if (this.horizonLines && runner.canvas && runner.canvasCtx) {
+                                    for (let i = 0; i < this.horizonLines.length; i++) {
+                                        const line = this.horizonLines[i];
+                                        if (line && line.draw) {
+                                            line.draw();
+                                        }
+                                    }
+                                }
+                                
+                                return result;
+                            };
+                        }
+                    }, 300);
+                    
+                    // Store runner reference globally for pause functionality
+                    window.trexRunner = runner;
+                    
+                    // Lock screen scroll when game is active
+                    let scrollLocked = false;
+                    let scrollPosition = 0;
+                    
+                    function lockScroll() {
+                        if (!scrollLocked && runner.playing && !runner.crashed) {
+                            scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+                            document.body.classList.add('game-active');
+                            document.body.style.top = `-${scrollPosition}px`;
+                            scrollLocked = true;
+                        }
+                    }
+                    
+                    function unlockScroll() {
+                        if (scrollLocked) {
+                            document.body.classList.remove('game-active');
+                            document.body.style.top = '';
+                            window.scrollTo(0, scrollPosition);
+                            scrollLocked = false;
+                        }
+                    }
+                    
+                    // Monitor game state to lock/unlock scroll
+                    const originalSetPlayStatus = runner.setPlayStatus.bind(runner);
+                    runner.setPlayStatus = function(isPlaying) {
+                        const result = originalSetPlayStatus(isPlaying);
+                        if (isPlaying && !this.crashed) {
+                            setTimeout(lockScroll, 100);
+                        } else if (!isPlaying || this.crashed || this.paused) {
+                            unlockScroll();
+                        }
+                        return result;
+                    };
+                    
+                    // Also lock on game start
+                    const originalPlay = runner.play.bind(runner);
+                    runner.play = function() {
+                        const result = originalPlay();
+                        setTimeout(lockScroll, 100);
+                        return result;
+                    };
+                    
+                    // Unlock on game over
+                    const originalGameOver = runner.gameOver.bind(runner);
+                    runner.gameOver = function() {
+                        const result = originalGameOver();
+                        unlockScroll();
+                        return result;
+                    };
+                    
+                    // Unlock on pause
+                    const originalStop = runner.stop.bind(runner);
+                    runner.stop = function() {
+                        const result = originalStop();
+                        unlockScroll();
+                        return result;
+                    };
+                    
+                    // Mobile swipe detection for ducking
+                    let touchStartY = 0;
+                    let touchStartTime = 0;
+                    const SWIPE_THRESHOLD = 50; // Minimum distance for swipe
+                    const SWIPE_TIME_THRESHOLD = 300; // Maximum time for swipe (ms)
+                    
+                    const gameContainer = trexGameContainer.closest('.bg-white, .dark\\:bg-gray-800');
+                    if (gameContainer) {
+                        gameContainer.addEventListener('touchstart', (e) => {
+                            if (runner.playing && !runner.crashed && !runner.paused) {
+                                touchStartY = e.touches[0].clientY;
+                                touchStartTime = Date.now();
+                            }
+                        }, { passive: true });
+                        
+                        gameContainer.addEventListener('touchmove', (e) => {
+                            if (runner.playing && !runner.crashed && !runner.paused && touchStartY > 0) {
+                                const touchEndY = e.touches[0].clientY;
+                                const touchEndTime = Date.now();
+                                const deltaY = touchEndY - touchStartY;
+                                const deltaTime = touchEndTime - touchStartTime;
+                                
+                                // Detect swipe down (positive deltaY means moving down)
+                                if (deltaY > SWIPE_THRESHOLD && deltaTime < SWIPE_TIME_THRESHOLD) {
+                                    // Duck gesture detected
+                                    if (runner.tRex) {
+                                        if (runner.tRex.jumping) {
+                                            // Speed drop if jumping
+                                            runner.tRex.setSpeedDrop();
+                                        } else if (!runner.tRex.jumping && !runner.tRex.ducking) {
+                                            // Duck if not jumping
+                                            runner.tRex.setDuck(true);
+                                        }
+                                    }
+                                    touchStartY = 0; // Reset to prevent multiple triggers
+                                }
+                            }
+                        }, { passive: true });
+                        
+                        gameContainer.addEventListener('touchend', (e) => {
+                            if (runner.playing && !runner.crashed && !runner.paused && runner.tRex && runner.tRex.ducking) {
+                                // Release duck when touch ends
+                                runner.tRex.speedDrop = false;
+                                runner.tRex.setDuck(false);
+                            }
+                            touchStartY = 0;
+                            touchStartTime = 0;
+                        }, { passive: true });
+                    }
+                    
+                    // Prevent page scrolling with spacebar and arrow keys when game is active
+                    document.addEventListener('keydown', event => {
+                        // Prevent default behavior for spacebar and arrow keys to avoid page scrolling
+                        if (event.key === ' ' || event.key === 'Space' || 
+                            event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                            // Only prevent if not in an input field
+                            if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+                                event.preventDefault();
+                            }
+                        }
+                        
+                        // Pause/Resume with 'P' key
+                        if ((event.key === 'p' || event.key === 'P') && 
+                            event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+                            event.preventDefault();
+                            if (runner.paused) {
+                                // Resume the game - reset tRex first like onKeyUp does
+                                if (runner.tRex) {
+                                    runner.tRex.reset();
+                                }
+                                runner.updatePending = false;
+                                runner.play();
+                            } else if (runner.playing && !runner.crashed && !runner.paused) {
+                                // Pause the game
+                                runner.stop();
+                            }
+                        }
+                    }, { passive: false });
+                    
+                    // Also prevent spacebar on keyup to be safe
+                    document.addEventListener('keyup', event => {
+                        if (event.key === ' ' || event.key === 'Space') {
+                            if (event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+                                event.preventDefault();
+                            }
+                        }
+                    }, { passive: false });
+                }
+            } catch (error) {
+                console.error('Error loading T-Rex game:', error);
+                // Fallback message
+                const container = document.querySelector('.trex-game');
+                if (container) {
+                    container.innerHTML = '<p class="text-center text-red-600 p-4">Erreur lors du chargement du jeu. Veuillez recharger la page.</p>';
+                }
+            }
+        });
+    </script>
+
+    <!-- Resources for the Trex Game -->
+    <div id="offline-resources" style="display: none">
+      <img
+        id="offline-resources-1x"
+        src="t-rex/images/default_100_percent/100-offline-sprite.png"
+      />
+      <img
+        id="offline-resources-2x"
+        src="t-rex/images/default_200_percent/200-offline-sprite.png"
+      />
+      <template id="audio-resources">
+        <audio
+          id="offline-sound-press"
+          src="data:audio/mpeg;base64,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"
+        ></audio>
+        <audio
+          id="offline-sound-hit"
+          src="data:audio/mpeg;base64,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"
+        ></audio>
+        <audio
+          id="offline-sound-reached"
+          src="data:audio/mpeg;base64,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"
+        ></audio>
+      </template>
+    </div>
+</body>
+</html>
+</html>

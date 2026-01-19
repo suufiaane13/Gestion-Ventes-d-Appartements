@@ -399,11 +399,29 @@ export class CSVManager {
         if (!sale.dateAchat || !/^\d{4}-\d{2}-\d{2}$/.test(sale.dateAchat)) {
             return `Ligne ${lineNumber}: La date d'achat est invalide`;
         }
-        if (!sale.appartement || !/^\d{3}-\d{2}-\d{2}$/.test(sale.appartement)) {
-            return `Ligne ${lineNumber}: Le format de l'appartement est invalide (attendu: XXX-XX-XX)`;
+        // Validation du format d'appartement selon le prix
+        if (!sale.appartement) {
+            return `Ligne ${lineNumber}: L'appartement est requis`;
         }
-        if (!sale.prix || (sale.prix !== '121800' && sale.prix !== '155000-16500')) {
-            return `Ligne ${lineNumber}: Le prix est invalide (attendu: 121800 ou 155000-16500)`;
+        
+        // Format pour prix 121 800: 999-A-99-99 (Immeuble-Porte-Étage-Numéro)
+        // Format pour prix 155 000 - 165 000 et 175 000: 999-99-99 (ancien format)
+        if (sale.prix === '121800') {
+            if (!/^\d{3}-[A-D]-\d{2}-\d{2}$/.test(sale.appartement)) {
+                return `Ligne ${lineNumber}: Le format de l'appartement est invalide pour prix 121 800 (attendu: XXX-A-XX-XX où A est A, B, C ou D)`;
+            }
+        } else if (sale.prix === '155000-16500' || sale.prix === '175000') {
+            if (!/^\d{3}-\d{2}-\d{2}$/.test(sale.appartement)) {
+                return `Ligne ${lineNumber}: Le format de l'appartement est invalide (attendu: XXX-XX-XX)`;
+            }
+        } else {
+            // Si le prix n'est pas spécifié, accepter les deux formats
+            if (!/^\d{3}-[A-D]-\d{2}-\d{2}$/.test(sale.appartement) && !/^\d{3}-\d{2}-\d{2}$/.test(sale.appartement)) {
+                return `Ligne ${lineNumber}: Le format de l'appartement est invalide (attendu: XXX-A-XX-XX pour prix 121 800 ou XXX-XX-XX pour autre prix)`;
+            }
+        }
+        if (!sale.prix || (sale.prix !== '121800' && sale.prix !== '155000-16500' && sale.prix !== '175000')) {
+            return `Ligne ${lineNumber}: Le prix est invalide (attendu: 121800, 155000-16500 ou 175000)`;
         }
         return null;
     }
@@ -413,7 +431,9 @@ export class CSVManager {
         if (prix === '121800') {
             return '121 800 DH';
         } else if (prix === '155000-16500') {
-            return '155 000 - 16 500 DH';
+            return '155 000 - 165 000 DH';
+        } else if (prix === '175000') {
+            return '175 000 DH';
         }
         return prix;
     }
@@ -425,6 +445,8 @@ export class CSVManager {
             return '121800';
         } else if (prixString.includes('155 000') || prixString.includes('155000-16500') || prixString === '155000-16500' || prixString.includes('138 500')) {
             return '155000-16500';
+        } else if (prixString.includes('175 000') || prixString === '175000' || prixString.includes('175000')) {
+            return '175000';
         }
         return prixString.trim();
     }
